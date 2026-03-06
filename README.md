@@ -1,117 +1,162 @@
-# extension-queue — Reliable Task Queue for Chrome Extensions
+# extension-queue
+
+A TypeScript task queue library designed for Chrome extensions with priority queue, concurrency control, rate limiting, retry logic, and dead letter handling. Built for Manifest V3.
 
 [![npm](https://img.shields.io/npm/v/extension-queue.svg)](https://www.npmjs.com/package/extension-queue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-green.svg)]()
 
-> **Built by [Zovo](https://zovo.one)** — reliable processing across 18+ Chrome extensions
-
-**FIFO queue with retry logic, persistence, concurrency control, and rate limiting** for Chrome extensions. Zero runtime dependencies.
-
-## 📦 Install
+## Install
 
 ```bash
 npm install extension-queue
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ```typescript
 import { TaskQueue } from 'extension-queue';
 
-// Create a queue with a worker
-const queue = new TaskQueue(async (task) => {
-    console.log('Processing:', task);
-    // Do async work
-    await fetch(task.url);
-    return 'done';
+const queue = new TaskQueue({
+    concurrency: 3,
+    rateLimit: 10,
+    ratePeriodMs: 1000,
+    maxRetries: 2
 });
 
-// Add tasks
-await queue.enqueue({ url: '/api/1', data: '...' });
-await queue.enqueue({ url: '/api/2', data: '...' });
+// Add tasks with priority (higher numbers = higher priority)
+await queue.add(async () => {
+    const result = await fetch('/api/data');
+    return result.json();
+}, 10);
 
-// Process queue
-await queue.process();
+await queue.add(async () => {
+    console.log('Lower priority task');
+}, 5);
 
-// Or use event-driven mode
-queue.on('task:complete', (result) => {
-    console.log('Task done:', result);
-});
-```
-
-## ✨ Features
-
-### Automatic Retry
-
-Failed tasks are automatically retried:
-
-```typescript
-const queue = new TaskQueue(worker, {
-    maxRetries: 3,
-    retryDelay: 1000,  // ms
-    backoff: 'exponential'  // linear | exponential
-});
-```
-
-### Persistence
-
-Tasks survive browser restart:
-
-```typescript
-const queue = new TaskQueue(worker, {
-    persist: true,  // Saves to chrome.storage
-    storageKey: 'my-queue'
-});
-```
-
-### Concurrency Control
-
-Process multiple tasks in parallel:
-
-```typescript
-const queue = new TaskQueue(worker, {
-    concurrency: 3  // Process 3 tasks simultaneously
-});
-```
-
-### Rate Limiting
-
-Avoid overwhelming APIs:
-
-```typescript
-const queue = new TaskQueue(worker, {
-    rateLimit: {
-        maxRequests: 10,
-        perSeconds: 1
-    }
-});
+// Check queue status
+console.log('Queue size:', queue.size);
+console.log('Active tasks:', queue.activeCount);
 ```
 
 ## API Reference
 
-### `TaskQueue`
-
-| Method | Description |
-|--------|-------------|
-| `enqueue(task)` | Add task to queue |
-| `process()` | Start processing |
-| `pause()` | Pause processing |
-| `resume()` | Resume processing |
-| `clear()` | Clear all tasks |
-| `size()` | Get queue size |
-
-### Events
+### TaskQueue Constructor
 
 ```typescript
-queue.on('task:start', (task) => {});
-queue.on('task:complete', (result) => {});
-queue.on('task:error', (error) => {});
-queue.on('task:retry', (task, attempt) => {});
-queue.on('empty', () => {});
+const queue = new TaskQueue({
+    concurrency: 3,           // Maximum concurrent tasks (default: 3)
+    rateLimit: 10,            // Max requests per rate period (default: Infinity)
+    ratePeriodMs: 1000,       // Rate limit period in ms (default: 1000)
+    maxRetries: 3             // Retry failed tasks N times (default: 0)
+});
 ```
 
-## 📄 License
+### Methods
 
-MIT — [Zovo](https://zovo.one)
+**add(fn, priority)** - Add a task to the queue
+
+```typescript
+const result = await queue.add(async () => {
+    return await doWork();
+}, 5); // priority defaults to 0
+```
+
+**size** - Get number of pending tasks in queue
+
+```typescript
+const pending = queue.size;
+```
+
+**activeCount** - Get number of currently running tasks
+
+```typescript
+const running = queue.activeCount;
+```
+
+**pending** - Get total pending (queued + running)
+
+```typescript
+const total = queue.pending;
+```
+
+**getDeadLetters()** - Get failed tasks that exceeded retry limit
+
+```typescript
+const failed = queue.getDeadLetters();
+// Returns Array<{ error: any; task: string }>
+```
+
+**clear()** - Clear all pending tasks and reject their promises
+
+```typescript
+queue.clear();
+```
+
+**drain()** - Wait until all tasks complete
+
+```typescript
+await queue.drain();
+```
+
+## Features
+
+### Priority Queue
+
+Tasks are processed in priority order. Higher priority tasks execute first.
+
+```typescript
+// High priority
+queue.add(highPriorityTask, 10);
+
+// Low priority
+queue.add(lowPriorityTask, 1);
+```
+
+### Concurrency Control
+
+Limit how many tasks run simultaneously.
+
+```typescript
+const queue = new TaskQueue({ concurrency: 2 });
+```
+
+### Rate Limiting
+
+Control request frequency to avoid overwhelming APIs.
+
+```typescript
+const queue = new TaskQueue({
+    rateLimit: 5,        // 5 requests
+    ratePeriodMs: 1000  // per second
+});
+```
+
+### Automatic Retry
+
+Failed tasks retry automatically up to maxRetries attempts.
+
+```typescript
+const queue = new TaskQueue({ maxRetries: 3 });
+
+queue.add(async () => {
+    if (Math.random() > 0.5) throw new Error('Random failure');
+    return 'success';
+});
+```
+
+### Dead Letter Queue
+
+Tasks that fail after all retries are moved to dead letter queue.
+
+```typescript
+const deadLetters = queue.getDeadLetters();
+deadLetters.forEach(({ error, task }) => {
+    console.error('Failed task:', task, 'Error:', error);
+});
+```
+
+## About
+
+extension-queue is maintained by [theluckystrike](https://github.com/theluckystrike). Built for Chrome extension development at [zovo.one](https://zovo.one).
