@@ -1,63 +1,103 @@
 # Contributing to extension-queue
 
-Thank you for your interest in contributing. This document outlines the process for contributing to the project.
+Thank you for your interest in contributing to extension-queue! This document outlines the process for contributing to this project.
 
-## Reporting Issues
+## Code of Conduct
 
-Before reporting a new issue, please search existing issues to avoid duplicates.
+By participating in this project, you agree to maintain a respectful and inclusive environment for everyone.
 
-When reporting a bug, include:
-- A clear description of the problem
-- Steps to reproduce the issue
-- Your environment (Node.js version, Chrome version, OS)
-- Any relevant error messages or logs
+## How to Contribute
 
-When requesting a feature, describe:
-- The problem you are trying to solve
-- Your proposed solution
-- Alternative solutions you have considered
+### Reporting Bugs
 
-## Development Workflow
+1. **Search existing issues** to avoid duplicates
+2. **Create a new issue** with:
+   - Clear title describing the bug
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Environment details (Chrome version, OS, etc.)
+   - Minimal code sample if applicable
 
-1. Fork the repository
-2. Clone your fork locally
-3. Create a feature branch from main
-4. Make your changes
-5. Test your changes
-6. Push to your fork
-7. Submit a pull request
+### Suggesting Features
 
-### Prerequisites
+1. **Check the issue tracker** for existing discussions
+2. **Open a feature request** with:
+   - Clear description of the feature
+   - Use cases
+   - Proposed implementation (optional)
+   - Alternatives considered
 
-- Node.js 18 or higher
-- npm 9 or higher
+### Pull Requests
 
-### Setup
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/your-feature`
+3. **Make your changes** following our coding standards
+4. **Write tests** for new functionality
+5. **Commit with clear messages**
+6. **Push to your fork** and submit a PR
+
+## Development Setup
 
 ```bash
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/extension-queue.git
+cd extension-queue
+
+# Install dependencies
 npm install
+
+# Build the project
 npm run build
+
+# Run tests (if available)
+npm test
 ```
 
-## Code Style
+## Coding Standards
 
-The project uses TypeScript with the following conventions:
-- Use TypeScript strict mode
-- Prefer interfaces over types for public APIs
-- Use meaningful variable and function names
-- Add JSDoc comments for public methods
-- Run `npm run build` before committing to ensure type safety
+- **TypeScript**: Use strict mode
+- **Formatting**: Use consistent indentation (2 spaces)
+- **Naming**: Use camelCase for variables and functions, PascalCase for classes
+- **Comments**: Add JSDoc comments for public APIs
+- **Error Handling**: Always handle errors appropriately
 
-## Testing
+## Commit Messages
 
-Run the build to verify TypeScript compilation:
+Follow conventional commit format:
 
-```bash
-npm run build
+```
+type(scope): description
+
+[optional body]
+
+[optional footer]
 ```
 
-The project uses TypeScript's built-in type checking. Ensure no TypeScript errors exist before submitting a pull request.
+Types:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Formatting, no code change
+- `refactor`: Code restructuring
+- `test`: Adding tests
+- `chore`: Maintenance
 
-## License
+## Pull Request Guidelines
 
-By contributing to extension-queue, you agree that your contributions will be licensed under the MIT License.
+- Keep PRs focused and reasonably sized
+- Include context in the PR description
+- Link related issues
+- Ensure all tests pass
+- Update documentation if needed
+
+## Recognition
+
+Contributors will be recognized in the README and release notes.
+
+## Contact
+
+For questions or suggestions, open an issue or reach out via GitHub.
+
+---
+
+Thank you for contributing!
